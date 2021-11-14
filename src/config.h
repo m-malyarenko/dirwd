@@ -11,7 +11,7 @@
 
 #define DIRWD_SYSLOG_IDENT "dirwdd"
 #define DIRWD_WORKING_DIR "/"
-#define DIRWD_CONFIG_PATH "/home/michael/dirwd/dirwdd.config"
+#define DIRWD_CONFIG_PATH "/etc/dirwdd.config"
 #define DIRWD_UMASK ((uint32_t) 0x0002)
 
 #endif /* __CONFIG_H__ */
