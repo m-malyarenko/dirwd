@@ -37,22 +37,25 @@ Daemon can be build with GNU Make.
 
 ### Syntax
 
-Daemon reads its configuration from specified file. Configuration file must contain single* line with following syntax:
+Daemon reads its configuration from specified file. Configuration file must contain single* line with following whitespace separated fields:
 
 ```
 [target dir absolute path] [inspection timeout in sec]
 ```
 **Empty lines are acceptable, if configuration has more than one non-empty line it will be discarded*
 
+Target directory path may contain double quotes '"' and shielding symbol '\' to implement verbatim reading.
+
 ### Example
 
-/etc/dirwdd.config:
-
 ```
-/home/user/Documents 60
+/home/user/Documents/Do\ not\ touch 60
+```
+```
+/home/user/Documents/"Do not touch" 60
 ```
 
-Configuration means: inspect /home/user/Documents directory and all its subdirectories once a minute (60 seconds).
+Configuration means: inspect "/home/user/Documents/Do not touch" directory and all its subdirectories once a minute (60 seconds).
 
 ## Usage
 
