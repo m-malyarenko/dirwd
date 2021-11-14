@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <ctype.h>
 #include <assert.h>
 #include <errno.h>
 
@@ -66,43 +67,23 @@ dirwd_status_t dirwd_config_read(const char* path, struct dirwd_config_t* config
         return DIRWD_FAILED_TO_READ_CONFIG;
     }
 
-    char* token = NULL;
-    char target_dir_string[STRING_BUFFER_SIZE] = { 0 };
-    char timeout_string[STRING_BUFFER_SIZE] = { 0 };
+    fclose(fin);
 
-    /* Parse target dir */
-    if ((token = strtok(config_string_buffer, " ")) != NULL) {
-        strcpy(target_dir_string, token);
+    char target_dir_buffer[STRING_BUFFER_SIZE] = { 0 };
+    size_t timeout = 0;
+
+    dirwd_status_t status = dirwd_config_tokenize(config_string_buffer, target_dir_buffer, &timeout);
+    if (status != DIRWD_SUCCESS) {
+        return status;
     }
 
-    /* Parse timeout string representation */
-    if ((token = strtok(NULL, " ")) != NULL) {
-        strcpy(timeout_string, token);
-    }
-
-    if (((token = strtok(NULL, " ")) != NULL)
-        || (strlen(target_dir_string) == 0)
-        || (strlen(timeout_string) == 0))
-    {
-        fclose(fin);
-        return DIRWD_INVALID_CONFIG_FORMAT;
-    }
-
-    const int64_t timeout_parsed = strtol(timeout_string, NULL, 10);
-    if ((timeout_parsed <= 0) || (errno == ERANGE)) {
-        fclose(fin);
-        return DIRWD_INVALID_CONFIG_TIMEOUT;
-    }
-
-    uint16_t timeout_sec = (uint16_t) timeout_parsed;
-    char* target_dir = (char*) malloc((strlen(target_dir_string) + 1) *sizeof(char));
-    strcpy(target_dir,target_dir_string);
+    char* target_dir = (char*) malloc((strlen(target_dir_buffer) + 1) *sizeof(char));
+    strcpy(target_dir, target_dir_buffer);
 
     /* Copy configuration parameters to the buffer structure */
     config_buf->target_dir = target_dir;
-    config_buf->timeout_sec = timeout_sec;
+    config_buf->timeout_sec = timeout;
 
-    fclose(fin);
     return DIRWD_SUCCESS;
 }
 
@@ -147,6 +128,92 @@ dirwd_status_t dirwd_config_setup(const struct dirwd_config_t* config, struct di
     if (status != DIRWD_SUCCESS) {
         return status;
     }
+
+    return DIRWD_SUCCESS;
+}
+
+dirwd_status_t dirwd_config_tokenize(const char* config_string, char* target_dir_buf, size_t* timeout_buf) {
+    assert(config_string != NULL);
+    assert(target_dir_buf != NULL);
+    assert(timeout_buf != NULL);
+
+    const size_t config_string_len = strlen(config_string);
+    const char* p_current = config_string;
+    const char* const p_end = config_string + config_string_len;
+
+    const char* cur_char_ptr = config_string;
+
+    /* Skip whitespace */
+    while (isspace(*cur_char_ptr) && (p_current != p_end)) {
+        p_current++;
+    }
+
+    if (p_current == p_end) {
+        return DIRWD_INVALID_CONFIG_FORMAT;
+    }
+
+    /* Parse target directory path with quotes */
+    bool shield_detected = false;
+    bool quotes_opened = false;
+    char* p_buffer = target_dir_buf;
+
+    while ((p_current != p_end)
+        && (quotes_opened 
+            || (!quotes_opened && !isspace(*p_current))))
+    {
+        if (shield_detected) {
+            /* If shield symbol was detected read verbatim */
+            *p_buffer = *p_current;
+            p_buffer++;
+            shield_detected = false;
+        } else {
+            /* Read next symbol */
+            switch (*p_current) {
+            case SHIELD_SYMBOL:
+                shield_detected = true;
+                break;
+            case QUOTE_SYMBOL:
+                quotes_opened = !quotes_opened;
+                break;
+            default:
+                *p_buffer = *p_current;
+                p_buffer++;
+                break;
+            }
+        }
+
+        p_current++;
+    }
+
+    if (p_current == p_end) {
+        return DIRWD_INVALID_CONFIG_TARGET_DIR;
+    }
+
+    /* Skip whitespace */
+    while (isspace(*cur_char_ptr) && (p_current != p_end)) {
+        p_current++;
+    }
+
+    if (p_current == p_end) {
+        return DIRWD_INVALID_CONFIG_FORMAT;
+    }
+
+    /* Parse timeout */
+    char timeout_string_buffer[STRING_BUFFER_SIZE] = { 0 };
+    p_buffer = timeout_string_buffer;
+    while (!isspace(*cur_char_ptr) && (p_current != p_end)) {
+        *p_buffer = *p_current;
+        p_buffer++;
+        p_current++;
+    }
+    *p_buffer = '\0';
+
+    const long timeout_parsed = strtol(timeout_string_buffer, NULL, 10);
+    if ((timeout_parsed <= 0) || (errno == ERANGE)) {
+        return DIRWD_INVALID_CONFIG_TIMEOUT;
+    }
+
+    *timeout_buf = (size_t) timeout_parsed;
 
     return DIRWD_SUCCESS;
 }
