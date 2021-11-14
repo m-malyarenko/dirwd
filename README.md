@@ -12,7 +12,7 @@ Daemon do not use any specific system library functions or any specific system l
 
 ## Build configuration
 
-Following parameters must be configured in the [project config header](src/dirwd_config.h):
+Following parameters must be configured in the [project config header](src/config.h):
 
 - `DIRWD_SYSLOG_IDENT` - Daemon syslog identificator name
 - `DIRWD_WORKING_DIR` - Daemon's working directory
