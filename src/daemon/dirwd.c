@@ -86,7 +86,7 @@ dirwd_status_t dirwd_init(const char* config_path, struct dirwd_state_t* cur_sta
     }
 
     syslog(LOG_INFO,
-        "Current configuration: target directory '%s' timeout: %u seconds",
+        "Current configuration: target directory '%s' timeout: %lu seconds",
         config.target_dir,
         config.timeout_sec
     );
