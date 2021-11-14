@@ -15,7 +15,7 @@
 #include <sys/stat.h>
 #include <sys/syslog.h>
 
-#include "dirwd_config.h"
+#include "config.h"
 #include "daemon/dirwd.h"
 
 int main() {

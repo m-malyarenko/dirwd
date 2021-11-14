@@ -4,8 +4,8 @@
  * @brief dirwd daemon configuration file
  */
 
-#ifndef __DIRWD_CONFIG_H__
-#define __DIRWD_CONFIG_H__
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
 
 #include <stdint.h>
 
@@ -14,4 +14,4 @@
 #define DIRWD_CONFIG_PATH "/home/michael/dirwd/dirwdd.config"
 #define DIRWD_UMASK ((uint32_t) 0x0002)
 
-#endif /* __DIRWD_CONFIG_H__ */
+#endif /* __CONFIG_H__ */
