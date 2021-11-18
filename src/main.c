@@ -29,6 +29,7 @@ int main() {
 		syslog(LOG_ERR, "Failed to fork daemon from parent process");
 		exit(EXIT_FAILURE);
 	} else if (pid > 0) {
+		printf("Directory Watchdog daemon PID: %i\n", pid);
 		syslog(LOG_DEBUG, "Daemon process forked from parent process");
 		exit(EXIT_SUCCESS);
 	}
