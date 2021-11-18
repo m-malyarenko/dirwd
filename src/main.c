@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/syslog.h>
 
+#include "util/debug_log.h"
 #include "config.h"
 #include "daemon/dirwd.h"
 
@@ -30,13 +31,13 @@ int main() {
 		exit(EXIT_FAILURE);
 	} else if (pid > 0) {
 		printf("Directory Watchdog daemon PID: %i\n", pid);
-		syslog(LOG_DEBUG, "Daemon process forked from parent process");
+		DEBUG_LOG("Daemon process forked from parent process");
 		exit(EXIT_SUCCESS);
 	}
 
 	/* Set file permissions */
 	umask(DIRWD_UMASK);
-	syslog(LOG_DEBUG, "Daemon enviroment UMASK set");
+	DEBUG_LOG("Daemon enviroment UMASK set");
 
 	/* Set new session ID for daemon */
 	const pid_t sid = setsid();
@@ -44,7 +45,7 @@ int main() {
 		syslog(LOG_ERR, "failed to set daemon's SID");
 		exit(EXIT_FAILURE);
 	} else {
-		syslog(LOG_DEBUG, "Daemon process SID set");
+		DEBUG_LOG("Daemon process SID set");
 	}
 
 	/* Change PWD to daemon folder */
@@ -52,18 +53,18 @@ int main() {
 		syslog(LOG_ERR, "failed to daemon's working directory");
 		exit(EXIT_FAILURE);
 	}
-	syslog(LOG_DEBUG, "Daemon process PWD set");
+	DEBUG_LOG("Daemon process PWD set");
 
 	/* Close stdin, stdout, stderr */
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
-	syslog(LOG_DEBUG, "Daemon process stdin, stdout, stderr closed");
+	DEBUG_LOG("Daemon process stdin, stdout, stderr closed");
 
 	/* Set signal handlers */
 	signal(SIGTERM, dirwd_sigterm_handler);
 	signal(SIGHUP, dirwd_sighup_handler);
-	syslog(LOG_DEBUG, "Daemon signal handlers are set");
+	DEBUG_LOG("Daemon signal handlers are set");
 
 	syslog(LOG_INFO, "Deamon started successfully");
 

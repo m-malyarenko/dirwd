@@ -19,6 +19,7 @@
 #include <sys/syslog.h>
 #include <dirent.h>
 
+#include "../util/debug_log.h"
 #include "../config.h"
 #include "dirwd_status.h"
 #include "dirwd_config.h"
@@ -56,34 +57,31 @@ dirwd_status_t dirwd_init(const char* config_path, struct dirwd_state_t* cur_sta
     struct dirwd_config_t config;
     status = dirwd_config_read(config_path, &config);
 
-    if (status == DIRWD_SUCCESS) {
-        syslog(LOG_DEBUG, "Configuration read");
-    } else {
+    if (status != DIRWD_SUCCESS) {
         dirwd_log_error(status);
         return DIRWD_FAILURE;
     }
+    DEBUG_LOG("Configuration read");
 
     /* Assert configureation parameters */
     status = dirwd_config_assert(&config);
 
-    if (status == DIRWD_SUCCESS) {
-        syslog(LOG_DEBUG, "Configuration format asserted");
-    } else {
+    if (status != DIRWD_SUCCESS) {
         dirwd_log_error(status);
         free(config.target_dir);
         return DIRWD_FAILURE;
     }
+    DEBUG_LOG("Configuration format asserted");
 
     /* Setup daemon with configuration */
     status = dirwd_config_setup(&config, cur_state);
 
-    if (status == DIRWD_SUCCESS) {
-        syslog(LOG_DEBUG, "Configuration set up");
-    } else {
+    if (status != DIRWD_SUCCESS) {
         dirwd_log_error(status);
         free(config.target_dir);
         return DIRWD_FAILURE;
     }
+    DEBUG_LOG("Configuration set up");
 
     syslog(LOG_INFO,
         "Current configuration: target directory '%s' timeout: %lu seconds",
